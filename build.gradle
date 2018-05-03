@@ -20,8 +20,8 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'com.github.hierynomus.license'
 
-sourceCompatibility = 9
-targetCompatibility = 9
+sourceCompatibility = 10
+targetCompatibility = 10
 
 def defaultEncoding = 'UTF-8'
 [compileJava, compileTestJava]*.options*.encoding = defaultEncoding

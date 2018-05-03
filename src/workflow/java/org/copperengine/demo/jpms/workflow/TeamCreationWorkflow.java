@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -41,14 +40,14 @@ public class TeamCreationWorkflow extends Workflow<TeamCreationRequest> {
     @Override
     public void main() throws Interrupt {
         // trigger the creation of the team leader
-        String leaderCorrelationId = adapter.asyncCreateLeader(getData().isFemaleLeader());
+        var leaderCorrelationId = adapter.asyncCreateLeader(getData().isFemaleLeader());
 
         // wait asynchronously for the team leader to be created
         wait(WaitMode.ALL, 60, TimeUnit.SECONDS, leaderCorrelationId);
 
         // retrieve the team leader
         Response<Person> leaderResponse = getAndRemoveResponse(leaderCorrelationId);
-        Person leader = fromResponse(leaderResponse, "leader", leaderCorrelationId);
+        var leader = fromResponse(leaderResponse, "leader", leaderCorrelationId);
         if(leader == null) return;
 
         // best practice: set variables that are no longer needed to null in order to reduce the footprint
@@ -57,7 +56,7 @@ public class TeamCreationWorkflow extends Workflow<TeamCreationRequest> {
 
         // trigger the creation of all team members
         int teamSize = getData().getTeamSize();
-        String[] memberCorrelationIds = new String[teamSize];
+        var memberCorrelationIds = new String[teamSize];
         for(int i=0; i < teamSize; i++) {
             memberCorrelationIds[i] = adapter.asyncCreateTeamMember(leader);
         }
@@ -66,10 +65,10 @@ public class TeamCreationWorkflow extends Workflow<TeamCreationRequest> {
         wait(WaitMode.ALL, 60, TimeUnit.SECONDS, memberCorrelationIds);
 
         // retrieve all team members
-        List<Person> members = new ArrayList<>();
+        var members = new ArrayList<Person>();
         for(int i=0; i < teamSize; i++) {
             Response<Person> memberResponse = getAndRemoveResponse(memberCorrelationIds[i]);
-            Person member = fromResponse(memberResponse, "member", memberCorrelationIds[i]);
+            var member = fromResponse(memberResponse, "member", memberCorrelationIds[i]);
             if(member != null) {
                 members.add(member);
             }

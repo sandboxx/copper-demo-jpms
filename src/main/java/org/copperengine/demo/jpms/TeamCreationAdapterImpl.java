@@ -17,7 +17,6 @@ package org.copperengine.demo.jpms;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.*;
@@ -48,8 +47,8 @@ public class TeamCreationAdapterImpl implements TeamCreationAdapter {
             } catch (Exception e) {
                 exc = e;
             }
-            org.copperengine.core.Response<Person> copperResp = new org.copperengine.core.Response<>(correlationId, leader, exc);
-            Acknowledge.DefaultAcknowledge ack = new Acknowledge.DefaultAcknowledge();
+            var copperResp = new org.copperengine.core.Response<>(correlationId, leader, exc);
+            var ack = new Acknowledge.DefaultAcknowledge();
             engine.notify(copperResp, ack);
             ack.waitForAcknowledge();
             return leader;
@@ -86,7 +85,7 @@ public class TeamCreationAdapterImpl implements TeamCreationAdapter {
         if(response.getStatusCode() / 100 != 2) {
             throw new Exception("HTTP-" + response.getStatusCode() + ": " + response.getStatusText());
         }
-        JsonNode node = new ObjectMapper().readTree(response.getResponseBody());
+        var node = new ObjectMapper().readTree(response.getResponseBody());
         String firstName = node.get("name").asText();
         String lastName = node.get("surname").asText();
         String gender = node.get("gender").asText();

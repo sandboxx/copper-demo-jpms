@@ -17,10 +17,8 @@ package org.copperengine.demo.jpms;
 
 import org.copperengine.core.CopperException;
 import org.copperengine.core.DependencyInjector;
-import org.copperengine.core.common.WorkflowRepository;
 import org.copperengine.core.tranzient.TransientEngineFactory;
 import org.copperengine.core.tranzient.TransientScottyEngine;
-import org.copperengine.core.wfrepo.FileBasedWorkflowRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +39,7 @@ public class TeamCreationMain {
 
 	private void runWithDependencyInjector(DependencyInjector dependencyInjector) throws InterruptedException {
 		// initialize the procession engine the default configuration and source directory for the workflow files
-		TransientEngineFactory factory = new TransientEngineFactory() {
+		var factory = new TransientEngineFactory() {
 			@Override
 			protected File getWorkflowSourceDirectory() {
 				return new File("./src/workflow/java");
@@ -60,7 +58,7 @@ public class TeamCreationMain {
             try {
                 boolean femaleLeader = rnd.nextBoolean();
                 int teamSize = 2 + rnd.nextInt(3);
-                TeamCreationRequest request = new TeamCreationRequest(femaleLeader, teamSize);
+                var request = new TeamCreationRequest(femaleLeader, teamSize);
                 engine.run("TeamCreationWorkFlow", request);
             } catch (CopperException e) {
                 logger.error("copper error: ", e);
