@@ -40,9 +40,15 @@ public class TeamCreationAdapterImpl implements TeamCreationAdapter {
         }
 
         @Override
-        public Person onCompleted(Response response) throws Exception {
-            Person leader = getPerson(response);
-            org.copperengine.core.Response<Person> copperResp = new org.copperengine.core.Response<>(correlationId, leader, null);
+        public Person onCompleted(Response response) {
+            Person leader = null;
+            Exception exc = null;
+            try {
+                leader = getPerson(response);
+            } catch (Exception e) {
+                exc = e;
+            }
+            org.copperengine.core.Response<Person> copperResp = new org.copperengine.core.Response<>(correlationId, leader, exc);
             Acknowledge.DefaultAcknowledge ack = new Acknowledge.DefaultAcknowledge();
             engine.notify(copperResp, ack);
             ack.waitForAcknowledge();
@@ -77,6 +83,9 @@ public class TeamCreationAdapterImpl implements TeamCreationAdapter {
     }
 
     private static Person getPerson(Response response) throws Exception {
+        if(response.getStatusCode() / 100 != 2) {
+            throw new Exception("HTTP-" + response.getStatusCode() + ": " + response.getStatusText());
+        }
         JsonNode node = new ObjectMapper().readTree(response.getResponseBody());
         String firstName = node.get("name").asText();
         String lastName = node.get("surname").asText();

@@ -44,15 +44,12 @@ public class TeamCreationWorkflow extends Workflow<TeamCreationRequest> {
         String leaderCorrelationId = adapter.asyncCreateLeader(getData().isFemaleLeader());
 
         // wait asynchronously for the team leader to be created
-        wait(WaitMode.ALL, 120, TimeUnit.SECONDS, leaderCorrelationId);
+        wait(WaitMode.ALL, 60, TimeUnit.SECONDS, leaderCorrelationId);
 
         // retrieve the team leader
         Response<Person> leaderResponse = getAndRemoveResponse(leaderCorrelationId);
-        if(leaderResponse.isTimeout()) {
-            logger.warn("Timeout for team leader with correlationId: {}", leaderCorrelationId);
-            return;
-        }
-        Person leader = leaderResponse.getResponse();
+        Person leader = fromResponse(leaderResponse, "leader", leaderCorrelationId);
+        if(leader == null) return;
 
         // best practice: set variables that are no longer needed to null in order to reduce the footprint
         leaderCorrelationId = null;
@@ -66,21 +63,34 @@ public class TeamCreationWorkflow extends Workflow<TeamCreationRequest> {
         }
 
         // wait asynchronously for all team members to be created
-        wait(WaitMode.ALL, 120, TimeUnit.SECONDS, memberCorrelationIds);
+        wait(WaitMode.ALL, 60, TimeUnit.SECONDS, memberCorrelationIds);
 
         // retrieve all team members
         List<Person> members = new ArrayList<>();
         for(int i=0; i < teamSize; i++) {
             Response<Person> memberResponse = getAndRemoveResponse(memberCorrelationIds[i]);
-            if(memberResponse.isTimeout()) {
-                logger.warn("Timeout for team member with correlationId: {}", memberCorrelationIds[i]);
-            } else {
-                members.add(memberResponse.getResponse());
+            Person member = fromResponse(memberResponse, "member", memberCorrelationIds[i]);
+            if(member != null) {
+                members.add(member);
             }
         }
 
         // display the created team
-        logger.info("Team of {} from {}; {}", leader.getFullName(), leader.getLocation(),
-                members.stream().map(Person::getFullName).collect(Collectors.joining(", ")));
+        if(!members.isEmpty()) {
+            logger.info("Team of {} from {}: {}", leader.getFullName(), leader.getLocation(),
+                    members.stream().map(Person::getFullName).collect(Collectors.joining(", ")));
+        }
+    }
+
+    private Person fromResponse(Response<Person> response, String role, String correlationId) {
+        if(response.isTimeout()) {
+            logger.debug("Timeout for team {} with correlationId: {}", role, correlationId);
+            return null;
+        }
+        if(response.getException() != null) {
+            logger.debug("Failed to create team {} with correlationId {}: {}", role, correlationId, response.getException().getMessage());
+            return null;
+        }
+        return response.getResponse();
     }
 }

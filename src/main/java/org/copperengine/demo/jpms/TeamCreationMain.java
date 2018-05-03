@@ -17,8 +17,10 @@ package org.copperengine.demo.jpms;
 
 import org.copperengine.core.CopperException;
 import org.copperengine.core.DependencyInjector;
+import org.copperengine.core.common.WorkflowRepository;
 import org.copperengine.core.tranzient.TransientEngineFactory;
 import org.copperengine.core.tranzient.TransientScottyEngine;
+import org.copperengine.core.wfrepo.FileBasedWorkflowRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +35,7 @@ public class TeamCreationMain {
     private final Random rnd = new Random();
 
 	public static void main(String[] args) throws Exception {
-	    new TeamCreationMain().runWithDependencyInjector(new DefaultDependencyInjector());
+        new TeamCreationMain().runWithDependencyInjector(new DefaultDependencyInjector());
 	    System.exit(0);
 	}
 
@@ -70,7 +72,7 @@ public class TeamCreationMain {
         int remaining = engine.getNumberOfWorkflowInstances();
         while(remaining > 0) {
             if(remaining != oldRemaining) {
-                logger.info("{} workflows remaining...", remaining);
+                logger.debug("{} workflows remaining...", remaining);
                 oldRemaining = remaining;
             }
             Thread.sleep(1000);

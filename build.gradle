@@ -1,6 +1,3 @@
-import org.gradle.plugins.signing.Sign
-import javax.swing.*
-
 plugins {
     id 'idea'
     id "com.github.hierynomus.license" version "0.12.1"
@@ -8,6 +5,9 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven {
+        url "http://localhost:8081/repository/maven-releases/"
+    }
 }
 
 ext {
@@ -20,8 +20,8 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'com.github.hierynomus.license'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 9
+targetCompatibility = 9
 
 def defaultEncoding = 'UTF-8'
 [compileJava, compileTestJava]*.options*.encoding = defaultEncoding
@@ -48,7 +48,8 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
 
     compile 'org.slf4j:slf4j-api:1.7.25'
-    runtime "org.slf4j:slf4j-log4j12:1.7.25"
+    compile 'ch.qos.logback:logback-classic:1.2.3'
+
 }
 
 jar {
@@ -73,3 +74,15 @@ artifacts {
     archives(sourcesJar, javadocJar)
 }
 
+javadoc {
+    options.addStringOption('-module-path', classpath.asPath)
+}
+
+compileJava {
+    options.compilerArgs = ['--module-path', classpath.asPath]
+    classpath = files()
+}
+
+tasks.withType(Javadoc) {
+    options.addBooleanOption 'html5', true
+}
